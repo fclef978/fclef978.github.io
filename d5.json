@@ -1,0 +1,132 @@
+{
+  "general": [
+    {
+      "name": "必修",
+      "grade": 0,
+      "number": 71,
+      "taken": true
+    },
+    {
+      "name": "音楽",
+      "grade": 1,
+      "number": 1,
+      "taken": true
+    },
+    {
+      "name": "美術",
+      "grade": 1,
+      "number": 1,
+      "taken": true
+    },
+    {
+      "name": "化学A",
+      "grade": 1,
+      "number": 2,
+      "taken": true
+    },
+    {
+      "name": "経済学",
+      "grade": 5,
+      "number": 2,
+      "taken": true
+    },
+    {
+      "name": "法学",
+      "grade": 5,
+      "number": 2,
+      "taken": false
+    },
+    {
+      "name": "選択外国語",
+      "grade": 5,
+      "number": 2,
+      "taken": true
+    },
+    {
+      "name": "海外語学研修",
+      "grade": 4,
+      "number": 1,
+      "taken": false
+    }
+  ],
+  "special": [
+    {
+      "name": "必修",
+      "grade": 0,
+      "number": 76,
+      "taken": true
+    },
+    {
+      "name": "ロボット工学演習",
+      "grade": 3,
+      "number": 1,
+      "taken": true
+    },
+    {
+      "name": "C言語応用演習",
+      "grade": 4,
+      "number": 1,
+      "taken": true
+    },
+    {
+      "name": "電子機械設計演習",
+      "grade": 4,
+      "number": 1,
+      "taken": false
+    },
+    {
+      "name": "計算機シミュレーション",
+      "grade": 5,
+      "number": 2,
+      "taken": false
+    },
+    {
+      "name": "システム制御工学II",
+      "grade": 5,
+      "number": 1,
+      "taken": false
+    },
+    {
+      "name": "人工知能",
+      "grade": 5,
+      "number": 2,
+      "taken": false
+    },
+    {
+      "name": "プログラミング言語JavaII",
+      "grade": 5,
+      "number": 1,
+      "taken": false
+    },
+    {
+      "name": "通信工学",
+      "grade": 5,
+      "number": 2,
+      "taken": false
+    },
+    {
+      "name": "学外実習III",
+      "grade": 4,
+      "number": 1,
+      "taken": false
+    },
+    {
+      "name": "学外実習IV",
+      "grade": 4,
+      "number": 1,
+      "taken": false
+    },
+    {
+      "name": "海外技術研修",
+      "grade": 4,
+      "number": 1,
+      "taken": false
+    },
+    {
+      "name": "学際科目",
+      "grade": 0,
+      "number": 6,
+      "taken": true
+    }
+  ]
+}
