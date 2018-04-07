@@ -1,8 +1,8 @@
-var p1 = new Audio('sample/bell.WAV');
-var p4 = new Audio('sample/tick.WAV');
-var p8 = new Audio('sample/tickL.WAV');
-var p12 = new Audio('sample/tickL.WAV');
-var p16 = new Audio('sample/tickL.WAV');
+var p1 = new Audio('../sample/bell.WAV');
+var p4 = new Audio('../sample/tick.WAV');
+var p8 = new Audio('../sample/tickL.WAV');
+var p12 = new Audio('../sample/tickL.WAV');
+var p16 = new Audio('../sample/tickL.WAV');
 
 function metronome(tempo, beat) {
     var lamp = $('#lamp');
