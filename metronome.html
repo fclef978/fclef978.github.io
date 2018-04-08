@@ -4,12 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>メトロノーム</title>
-    <link rel="stylesheet" href="css/jquery-ui-1.9.2.css"/>
-    <link rel="stylesheet" href="css/jquery-ui.theme.min.css"/>
-    <link rel="stylesheet" href="css/jquery-ui.structure.min.css"/>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/jquery-1.8.3.js"></script>
-    <script src="js/jquery-ui-1.9.2.js"></script>
     <script src="js/jquery.knob.js"></script>
     <script src="js/metronome.js"></script>
 </head>
@@ -21,12 +17,12 @@
     <button id="start-stop">再生・停止</button>
 </div>
 <div class="container">
-    <div id="main-volume" class="bar"></div>
-    <div id="volume1" class="bar"></div>
-    <div id="volume4" class="bar"></div>
-    <div id="volume8" class="bar"></div>
-    <div id="volume12" class="bar"></div>
-    <div id="volume16" class="bar"></div>
+    <input type="range" id="main-volume" class="slider">
+    <input type="range" id="volume1" class="slider">
+    <input type="range" id="volume4" class="slider">
+    <input type="range" id="volume8" class="slider">
+    <input type="range" id="volume12" class="slider">
+    <input type="range" id="volume16" class="slider">
 </div>
 <div class="container">
     <input type="text" id="knob">
