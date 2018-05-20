@@ -948,7 +948,7 @@ $.widget("ui.mouse", {
 			$.removeData(event.target, this.widgetName + '.preventClickEvent');
 		}
 
-		// these delegates are required to keep context
+		// these delegates are required to keep ctx
 		this._mouseMoveDelegate = function(event) {
 			return that._mouseMove(event);
 		};

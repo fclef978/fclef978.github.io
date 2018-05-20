@@ -119,7 +119,7 @@ jQuery.fn = jQuery.prototype = {
 				match = rquickExpr.exec( selector );
 			}
 
-			// Match html or make sure no context is specified for #id
+			// Match html or make sure no ctx is specified for #id
 			if ( match && (match[1] || !context) ) {
 
 				// HANDLE: $(html) -> $(array)
@@ -162,8 +162,8 @@ jQuery.fn = jQuery.prototype = {
 			} else if ( !context || context.jquery ) {
 				return ( context || rootjQuery ).find( selector );
 
-			// HANDLE: $(expr, context)
-			// (which is just equivalent to: $(context).find(expr)
+			// HANDLE: $(expr, ctx)
+			// (which is just equivalent to: $(ctx).find(expr)
 			} else {
 				return this.constructor( context ).find( selector );
 			}
@@ -176,7 +176,7 @@ jQuery.fn = jQuery.prototype = {
 
 		if ( selector.selector !== undefined ) {
 			this.selector = selector.selector;
-			this.context = selector.context;
+			this.context = selector.ctx;
 		}
 
 		return jQuery.makeArray( selector, this );
@@ -478,7 +478,7 @@ jQuery.extend({
 	},
 
 	// data: string of html
-	// context (optional): If specified, the fragment will be created in this context, defaults to document
+	// ctx (optional): If specified, the fragment will be created in this ctx, defaults to document
 	// scripts (optional): If true, will include scripts passed in the html string
 	parseHTML: function( data, context, scripts ) {
 		var parsed;
@@ -552,13 +552,13 @@ jQuery.extend({
 
 	noop: function() {},
 
-	// Evaluates a script in a global context
+	// Evaluates a script in a global ctx
 	// Workarounds based on findings by Jim Driscoll
 	// http://weblogs.java.net/blog/driscoll/archive/2009/09/08/eval-javascript-global-context
 	globalEval: function( data ) {
 		if ( data && core_rnotwhite.test( data ) ) {
 			// We use execScript on Internet Explorer
-			// We use an anonymous function so that context is window
+			// We use an anonymous function so that ctx is window
 			// rather than jQuery in Firefox
 			( window.execScript || function( data ) {
 				window[ "eval" ].call( window, data );
@@ -752,7 +752,7 @@ jQuery.extend({
 	// A global GUID counter for objects
 	guid: 1,
 
-	// Bind a function to a context, optionally partially applying any
+	// Bind a function to a ctx, optionally partially applying any
 	// arguments.
 	proxy: function( fn, context ) {
 		var tmp, args, proxy;
@@ -1073,7 +1073,7 @@ jQuery.Callbacks = function( options ) {
 			locked: function() {
 				return !stack;
 			},
-			// Call all callbacks with the given context and arguments
+			// Call all callbacks with the given ctx and arguments
 			fireWith: function( context, args ) {
 				args = args || [];
 				args = [ context, args.slice ? args.slice() : args ];
@@ -3578,11 +3578,11 @@ jQuery.fn.extend({
 	},
 
 	live: function( types, data, fn ) {
-		jQuery( this.context ).on( types, this.selector, data, fn );
+		jQuery( this.ctx ).on( types, this.selector, data, fn );
 		return this;
 	},
 	die: function( types, fn ) {
-		jQuery( this.context ).off( types, this.selector || "**", fn );
+		jQuery( this.ctx ).off( types, this.selector || "**", fn );
 		return this;
 	},
 
@@ -4843,7 +4843,7 @@ function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postS
 			postMap = [],
 			preexisting = results.length,
 
-			// Get initial elements from seed or context
+			// Get initial elements from seed or ctx
 			elems = seed || multipleContexts( selector || "*", context.nodeType ? [ context ] : context, [] ),
 
 			// Prefilter to get matcher input, preserving a map for seed-results synchronization
@@ -4930,7 +4930,7 @@ function matcherFromTokens( tokens ) {
 		implicitRelative = leadingRelative || Expr.relative[" "],
 		i = leadingRelative ? 1 : 0,
 
-		// The foundational matcher ensures that elements are reachable from top-level context(s)
+		// The foundational matcher ensures that elements are reachable from top-level ctx(s)
 		matchContext = addCombinator( function( elem ) {
 			return elem === checkContext;
 		}, implicitRelative, true ),
@@ -4986,7 +4986,7 @@ function matcherFromGroupMatchers( elementMatchers, setMatchers ) {
 				unmatched = seed && [],
 				outermost = expandContext != null,
 				contextBackup = outermostContext,
-				// We must always have either seed elements or context
+				// We must always have either seed elements or ctx
 				elems = seed || byElement && Expr.find["TAG"]( "*", expandContext && context.parentNode || context ),
 				// Nested matchers should use non-integer dirruns
 				dirrunsUnique = (dirruns += contextBackup == null ? 1 : Math.E);
@@ -5117,7 +5117,7 @@ function select( selector, context, results, seed, xml ) {
 		// Try to minimize operations if there is only one group
 		if ( match.length === 1 ) {
 
-			// Take a shortcut and set the context if the root selector is an ID
+			// Take a shortcut and set the ctx if the root selector is an ID
 			tokens = match[0] = match[0].slice( 0 );
 			if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
 					context.nodeType === 9 && !xml &&
@@ -5140,7 +5140,7 @@ function select( selector, context, results, seed, xml ) {
 					break;
 				}
 				if ( (find = Expr.find[ type ]) ) {
-					// Search, expanding context for leading sibling combinators
+					// Search, expanding ctx for leading sibling combinators
 					if ( (seed = find(
 						token.matches[0].replace( rbackslash, "" ),
 						rsibling.test( tokens[0].type ) && context.parentNode || context,
@@ -5428,7 +5428,7 @@ jQuery.fn.extend({
 				// If this is a positional/relative selector, check membership in the returned set
 				// so $("p:first").is("p:last") won't return true for a doc with two "p".
 				rneedsContext.test( selector ) ?
-					jQuery( selector, this.context ).index( this[0] ) >= 0 :
+					jQuery( selector, this.ctx ).index( this[0] ) >= 0 :
 					jQuery.filter( selector, this ).length > 0 :
 				this.filter( selector ).length > 0 );
 	},
@@ -5439,7 +5439,7 @@ jQuery.fn.extend({
 			l = this.length,
 			ret = [],
 			pos = rneedsContext.test( selectors ) || typeof selectors !== "string" ?
-				jQuery( selectors, context || this.context ) :
+				jQuery( selectors, context || this.ctx ) :
 				0;
 
 		for ( ; i < l; i++ ) {
@@ -6136,8 +6136,8 @@ jQuery.buildFragment = function( args, context, scripts ) {
 	var fragment, cacheable, cachehit,
 		first = args[ 0 ];
 
-	// Set context from what may come in as undefined or a jQuery collection or a node
-	// Updated to fix #12266 where accessing context[0] could throw an exception in IE9/10 &
+	// Set ctx from what may come in as undefined or a jQuery collection or a node
+	// Updated to fix #12266 where accessing ctx[0] could throw an exception in IE9/10 &
 	// also doubles as fix for #8950 where plain objects caused createDocumentFragment exception
 	context = context || document;
 	context = !context.nodeType && context[0] || context;
@@ -6290,12 +6290,12 @@ jQuery.extend({
 			safe = context === document && safeFragment,
 			ret = [];
 
-		// Ensure that context is a document
+		// Ensure that ctx is a document
 		if ( !context || typeof context.createDocumentFragment === "undefined" ) {
 			context = document;
 		}
 
-		// Use the already-created safe fragment if context permits
+		// Use the already-created safe fragment if ctx permits
 		for ( i = 0; (elem = elems[i]) != null; i++ ) {
 			if ( typeof elem === "number" ) {
 				elem += "";
@@ -7642,8 +7642,8 @@ jQuery.extend({
 			i,
 			// Create the final options object
 			s = jQuery.ajaxSetup( {}, options ),
-			// Callbacks context
-			callbackContext = s.context || s,
+			// Callbacks ctx
+			callbackContext = s.ctx || s,
 			// Context for global events
 			// It's the callbackContext if one was provided in the options
 			// and if it's a DOM node or a jQuery collection

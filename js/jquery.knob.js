@@ -57,7 +57,7 @@
         this.o = null; // array of options
         this.$ = null; // jQuery wrapped element
         this.i = null; // mixed HTMLInputElement or array of HTMLInputElement
-        this.g = null; // deprecated 2D graphics context for 'pre-rendering'
+        this.g = null; // deprecated 2D graphics ctx for 'pre-rendering'
         this.v = null; // value ; mixed array or integer
         this.cv = null; // change value ; not commited value
         this.x = 0; // canvas x position
@@ -65,7 +65,7 @@
         this.w = 0; // canvas width
         this.h = 0; // canvas height
         this.$c = null; // jQuery canvas element
-        this.c = null; // rendered canvas context
+        this.c = null; // rendered canvas ctx
         this.t = 0; // touches index
         this.isInit = false;
         this.fgColor = null; // main color
@@ -756,7 +756,7 @@
         };
 
         this.draw = function () {
-            var c = this.g,                 // context
+            var c = this.g,                 // ctx
                 a = this.arc(this.cv),      // Arc
                 pa,                         // Previous arc
                 r = 1;
