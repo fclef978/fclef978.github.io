@@ -4,22 +4,48 @@
  */
 
 class Note {
-  note: OscillatorNode;
+  ctx: AudioContext;
+  buffer: AudioBuffer;
   gain: GainNode;
   volume = 1.0;
 
-  constructor(ctx: AudioContext, master: GainNode) {
-    this.note = ctx.createOscillator();
-    this.gain = ctx.createGain();
+  constructor(url: string, ctx: AudioContext, master: GainNode) {
+    this.ctx = ctx;
+    this.getBuffer(url);
+    this.gain = this.ctx.createGain();
     this.gain.gain.value = 0;
-    this.note.frequency.value = 1200;
-    this.note.connect(this.gain).connect(master);
-    this.note.start();
+    this.gain.connect(master);
   }
 
   click = (time: number) => {
-    this.gain.gain.setValueAtTime(this.volume, time);
-    this.gain.gain.linearRampToValueAtTime(0, time + 0.05);
+    // source を作成
+    var source = this.ctx.createBufferSource();
+    // buffer をセット
+    source.buffer = this.buffer;
+    // context に connect
+    source.connect(this.gain);
+    // 再生
+    source.start(time);
+  };
+
+  getBuffer(url: string) {
+    var req = new XMLHttpRequest();
+    // array buffer を指定
+    req.responseType = 'arraybuffer';
+
+    req.onreadystatechange = () => {
+      if (req.readyState === 4) {
+        if (req.status === 0 || req.status === 200) {
+          // array buffer を audio buffer に変換
+          this.ctx.decodeAudioData(req.response, (buffer: AudioBuffer) => {
+            this.buffer = buffer;
+          });
+        }
+      }
+    };
+
+    req.open('GET', url, true);
+    req.send('');
   }
 }
 
@@ -44,8 +70,8 @@ class Metronome {
     this.context = new AudioContext();
     this.masterGain = this.context.createGain();
     this.masterGain.connect(this.context.destination);
-    for (var i = 0; i < 5; i++) {
-      this.noteList.push(new Note(this.context, this.masterGain));
+    for (let i = 0; i < 5; i++) {
+      this.noteList.push(new Note('./sample/tick.wav', this.context, this.masterGain));
     }
   }
 
@@ -130,7 +156,7 @@ class MetronomeController {
         this.mn.setVolume(+key, +val);
       }
     }
-  }
+  };
 
   initTempo = () => {
     this.tempoBar.value = "120";
@@ -142,7 +168,7 @@ class MetronomeController {
       const val = (<HTMLInputElement>e.target).value;
       this.mn.setTempo(+val);
     };
-  }
+  };
 
   startStop = () => {
     if (this.running) {

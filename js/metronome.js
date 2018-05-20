@@ -2,24 +2,47 @@
  * by FClef978
  * TypeScriptは初めてなんで多少のガバは許し亭ゆるして
  */
-var Note = /** @class */ (function () {
-    function Note(ctx, master) {
+var Note = (function () {
+    function Note(url, ctx, master) {
         var _this = this;
         this.volume = 1.0;
         this.click = function (time) {
-            _this.gain.gain.setValueAtTime(_this.volume, time);
-            _this.gain.gain.linearRampToValueAtTime(0, time + 0.05);
+            // source を作成
+            var source = _this.ctx.createBufferSource();
+            // buffer をセット
+            source.buffer = _this.buffer;
+            // context に connect
+            source.connect(_this.gain);
+            // 再生
+            source.start(time);
         };
-        this.note = ctx.createOscillator();
-        this.gain = ctx.createGain();
+        this.ctx = ctx;
+        this.getBuffer(url);
+        this.gain = this.ctx.createGain();
         this.gain.gain.value = 0;
-        this.note.frequency.value = 1200;
-        this.note.connect(this.gain).connect(master);
-        this.note.start();
+        this.gain.connect(master);
     }
+    Note.prototype.getBuffer = function (url) {
+        var _this = this;
+        var req = new XMLHttpRequest();
+        // array buffer を指定
+        req.responseType = 'arraybuffer';
+        req.onreadystatechange = function () {
+            if (req.readyState === 4) {
+                if (req.status === 0 || req.status === 200) {
+                    // array buffer を audio buffer に変換
+                    _this.ctx.decodeAudioData(req.response, function (buffer) {
+                        _this.buffer = buffer;
+                    });
+                }
+            }
+        };
+        req.open('GET', url, true);
+        req.send('');
+    };
     return Note;
 }());
-var Metronome = /** @class */ (function () {
+var Metronome = (function () {
     function Metronome() {
         this.noteList = [];
         this.beatTick = 60 * 1000 / 120 / 12;
@@ -34,7 +57,7 @@ var Metronome = /** @class */ (function () {
         this.masterGain = this.context.createGain();
         this.masterGain.connect(this.context.destination);
         for (var i = 0; i < 5; i++) {
-            this.noteList.push(new Note(this.context, this.masterGain));
+            this.noteList.push(new Note('./sample/tick.wav', this.context, this.masterGain));
         }
     };
     Metronome.prototype.setMasterVol = function (vol) {
@@ -85,7 +108,7 @@ var Metronome = /** @class */ (function () {
     };
     return Metronome;
 }());
-var MetronomeController = /** @class */ (function () {
+var MetronomeController = (function () {
     function MetronomeController() {
         var _this = this;
         this.mn = new Metronome();
