@@ -68,10 +68,11 @@ var Metronome = /** @class */ (function () {
                 // 予約時間をループで使っていたDOMHighResTimeStampからAudioContext向けに変換
                 var nextClickTime = _this.timeStampToAudioContextTime(nextClickTimeStamp);
                 // 変換した時刻を使ってクリックを予約
-                if (_this.counter == 0) {
+                if (_this.counter % (12 * _this.beat) == 0) {
+                    console.log(_this.counter);
                     _this.noteList[0].click(nextClickTime);
                 }
-                if (_this.counter % 12 == 0) {
+                else if (_this.counter % 12 == 0) {
                     _this.noteList[1].click(nextClickTime);
                 }
                 else if (_this.counter % 6 == 0) {
@@ -149,7 +150,7 @@ var MetronomeController = /** @class */ (function () {
             else {
                 item.oninput = function (e) {
                     var val = +e.target.value / _this.volumeMax;
-                    _this.mn.setVolume(+key - 1, +val);
+                    _this.mn.setVolume(+key + 1, +val);
                 };
             }
         };
@@ -182,3 +183,4 @@ var MetronomeController = /** @class */ (function () {
 window.onload = function () {
     new MetronomeController();
 };
+//# sourceMappingURL=main.js.map

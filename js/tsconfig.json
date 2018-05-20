@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+    "target": "ES5",
+    "module": "amd",
+    "sourceMap": true,
+    // 出力するファイル名を指定
+    "outFile": "./src/main.js",
+    "lib": [
+            "dom",
+            "es5",
+            "scripthost",
+            "es2015.promise"
+    ]
+    }
+}

@@ -85,10 +85,10 @@ class Metronome {
                 const nextClickTime: number = this.timeStampToAudioContextTime(nextClickTimeStamp);
 
                 // 変換した時刻を使ってクリックを予約
-                if (this.counter % 12 * this.beat == 0) {
+                if (this.counter == 0) {
                     this.noteList[0].click(nextClickTime);
                 }
-                else if (this.counter % 12 == 0) {
+                if (this.counter % 12 == 0) {
                     this.noteList[1].click(nextClickTime);
                 }
                 else if (this.counter % 6 == 0) {
@@ -104,7 +104,6 @@ class Metronome {
 
                 // スケジュール済みクリックの時刻を更新
                 this.lastClickTimeStamp = nextClickTimeStamp;
-                console.log(this.counter);
             }
         }, 200);
     }
@@ -175,7 +174,7 @@ class MetronomeController {
         } else {
             item.oninput = (e) => {
                 const val = +(<HTMLInputElement>e.target).value / this.volumeMax;
-                this.mn.setVolume(+key + 1, +val);
+                this.mn.setVolume(+key - 1, +val);
             }
         }
     };
