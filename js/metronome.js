@@ -3,23 +3,45 @@
  * TypeScriptは初めてなんで多少のガバは許し亭ゆるして
  */
 var Note = /** @class */ (function () {
-    function Note(buf, ctx, master) {
+    function Note(url, ctx, master, num) {
         var _this = this;
         this.volume = 1.0;
         this.click = function (time) {
             var source = _this.ctx.createBufferSource();
-            source.buffer = _this.buffer;
+            source.buffer = _this.buf;
             source.connect(_this.gain);
             source.start(time);
         };
         this.ctx = ctx;
-        this.buffer = buf;
+        this.num = num;
+        this.getBuffer(url);
         this.gain = this.ctx.createGain();
         this.gain.gain.value = 1.0;
         this.gain.connect(master);
     }
     Note.prototype.setVolume = function (vol) {
         this.gain.gain.value = vol;
+    };
+    Note.prototype.getBuffer = function (url) {
+        var _this = this;
+        var req = new XMLHttpRequest();
+        // array buffer を指定
+        req.responseType = 'arraybuffer';
+        req.onreadystatechange = function () {
+            if (req.readyState === 4) {
+                if (req.status === 0 || req.status === 200) {
+                    // array buffer を audio buffer に変換
+                    _this.ctx.decodeAudioData(req.response, function (buffer) {
+                        _this.buf = buffer;
+                        var selector = 'volume' + _this.num.toString();
+                        var bar = document.getElementById(selector);
+                        bar.classList.remove('hidden');
+                    });
+                }
+            }
+        };
+        req.open('GET', url, true);
+        req.send('');
     };
     return Note;
 }());
@@ -29,26 +51,22 @@ var Metronome = /** @class */ (function () {
         this.noteList = [];
         this.beatTick = 60 * 1000 / 120 / 12;
         this.counter = 0;
+        this.tempo = 120;
         this.beat = 4;
+        this.isRing = true;
         this.initAudio();
         this.baseTimeStamp = performance.now() - this.ctx.currentTime * 1000;
         this.lastClickTimeStamp = performance.now();
     }
     Metronome.prototype.initAudio = function () {
-        var _this = this;
         this.ctx = new AudioContext();
         this.masterGain = this.ctx.createGain();
         this.masterGain.connect(this.ctx.destination);
-        this.getBuffer('https://fclef978.github.io/sample/tick.wav', 'tick');
-        this.getBuffer('https://fclef978.github.io/sample/tickL.wav', 'tickL');
-        this.getBuffer('https://fclef978.github.io/sample/bell.wav', 'bell');
-        setTimeout(function () {
-            _this.noteList.push(new Note(_this.bufList['bell'], _this.ctx, _this.masterGain));
-            _this.noteList.push(new Note(_this.bufList['tick'], _this.ctx, _this.masterGain));
-            _this.noteList.push(new Note(_this.bufList['tickL'], _this.ctx, _this.masterGain));
-            _this.noteList.push(new Note(_this.bufList['tickL'], _this.ctx, _this.masterGain));
-            _this.noteList.push(new Note(_this.bufList['tickL'], _this.ctx, _this.masterGain));
-        }, 1000);
+        this.noteList.push(new Note('https://fclef978.github.io/sample/bell.wav', this.ctx, this.masterGain, 1));
+        this.noteList.push(new Note('https://fclef978.github.io/sample/tick.wav', this.ctx, this.masterGain, 4));
+        this.noteList.push(new Note('https://fclef978.github.io/sample/tickL.wav', this.ctx, this.masterGain, 8));
+        this.noteList.push(new Note('https://fclef978.github.io/sample/tickL.wav', this.ctx, this.masterGain, 12));
+        this.noteList.push(new Note('https://fclef978.github.io/sample/tickL.wav', this.ctx, this.masterGain, 16));
     };
     Metronome.prototype.setMasterVol = function (vol) {
         this.masterGain.gain.value = vol;
@@ -68,7 +86,7 @@ var Metronome = /** @class */ (function () {
                 // 予約時間をループで使っていたDOMHighResTimeStampからAudioContext向けに変換
                 var nextClickTime = _this.timeStampToAudioContextTime(nextClickTimeStamp);
                 // 変換した時刻を使ってクリックを予約
-                if (_this.counter == 0) {
+                if (_this.counter == 0 && _this.isRing) {
                     _this.noteList[0].click(nextClickTime);
                 }
                 if (_this.counter % 12 == 0) {
@@ -90,26 +108,24 @@ var Metronome = /** @class */ (function () {
             }
         }, 200);
     };
-    Metronome.prototype.getBuffer = function (url, name) {
-        var _this = this;
-        var req = new XMLHttpRequest();
-        // array buffer を指定
-        req.responseType = 'arraybuffer';
-        req.onreadystatechange = function () {
-            if (req.readyState === 4) {
-                if (req.status === 0 || req.status === 200) {
-                    // array buffer を audio buffer に変換
-                    _this.ctx.decodeAudioData(req.response, function (buffer) {
-                        _this.bufList[name] = buffer;
-                    });
-                }
-            }
-        };
-        req.open('GET', url, true);
-        req.send('');
-    };
     Metronome.prototype.setTempo = function (tempo) {
-        this.beatTick = 60 * 1000 / tempo / 12;
+        if (tempo == 1)
+            this.tempo++;
+        else if (tempo == -1)
+            this.tempo--;
+        else
+            this.tempo = tempo;
+        this.beatTick = 60 * 1000 / this.tempo / 12;
+    };
+    Metronome.prototype.setBeat = function (beat) {
+        if (beat == 0) {
+            this.beat = 1;
+            this.isRing = false;
+        }
+        else {
+            this.beat = beat;
+            this.isRing = true;
+        }
     };
     Metronome.prototype.currentTimeStamp = function () {
         return this.baseTimeStamp + this.ctx.currentTime * 1000;
@@ -132,6 +148,8 @@ var MetronomeController = /** @class */ (function () {
         this.startBtn = document.getElementById("start-stop");
         this.volumeBars = document.getElementsByClassName("volume");
         this.tempoBar = document.getElementById("tempo");
+        this.tempoDisp = document.getElementById("tempo-disp");
+        this.beatField = document.getElementById("beat");
         this.running = false;
         this.volumeMax = 20;
         this.initVolumes = [1.0, 1.0, 1.0, 0.5, 0.0, 0.0];
@@ -141,12 +159,14 @@ var MetronomeController = /** @class */ (function () {
             item.max = _this.volumeMax;
             item.step = 1;
             if (+key == 0) {
+                _this.mn.setMasterVol(_this.initVolumes[+key]);
                 item.oninput = function (e) {
                     var val = +e.target.value / _this.volumeMax;
                     _this.mn.setMasterVol(val);
                 };
             }
             else {
+                _this.mn.setVolume(+key - 1, _this.initVolumes[+key]);
                 item.oninput = function (e) {
                     var val = +e.target.value / _this.volumeMax;
                     _this.mn.setVolume(+key - 1, +val);
@@ -158,10 +178,45 @@ var MetronomeController = /** @class */ (function () {
             _this.tempoBar.min = "40";
             _this.tempoBar.max = "240";
             _this.tempoBar.step = "1";
-            _this.tempoBar.oninput = function (e) {
-                var val = e.target.value;
-                _this.mn.setTempo(+val);
-            };
+            _this.tempoDisp.value = _this.tempoBar.value;
+            _this.tempoDisp.min = "40";
+            _this.tempoDisp.max = "240";
+            _this.tempoDisp.step = "1";
+            var up = document.getElementById("tempo-up");
+            var down = document.getElementById("tempo-down");
+            _this.tempoBar.addEventListener("input", _this.tempoChange);
+            _this.tempoBar.addEventListener("change", _this.tempoChange);
+            _this.tempoDisp.addEventListener("input", _this.tempoChange);
+            up.addEventListener("click", _this.tempoInc);
+            down.addEventListener("click", _this.tempoDec);
+        };
+        this.initBeat = function () {
+            _this.beatField.value = "4";
+            _this.beatField.min = "0";
+            _this.beatField.max = "16";
+            _this.beatField.step = "1";
+            _this.beatField.addEventListener("input", function (e) {
+                var val = +e.target.value;
+                console.log(val);
+                _this.mn.setBeat(val);
+            });
+        };
+        this.tempoInc = function (e) {
+            _this.tempoChange(e, 1);
+        };
+        this.tempoDec = function (e) {
+            _this.tempoChange(e, -1);
+        };
+        this.tempoChange = function (e, delta) {
+            if (delta === void 0) { delta = 0; }
+            var val = 0;
+            if (delta == 0)
+                val = +e.target.value;
+            else
+                val = +_this.tempoBar.value + delta;
+            _this.mn.setTempo(val);
+            _this.tempoDisp.value = val.toString();
+            _this.tempoBar.value = val.toString();
         };
         this.startStop = function () {
             if (_this.running) {
@@ -176,6 +231,7 @@ var MetronomeController = /** @class */ (function () {
         this.startBtn.onclick = this.startStop;
         Array.prototype.forEach.call(this.volumeBars, this.initVolBar);
         this.initTempo();
+        this.initBeat();
     }
     return MetronomeController;
 }());
