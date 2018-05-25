@@ -53,6 +53,75 @@ class Note {
     }
 }
 
+class UpDownValController {
+    btnUp: HTMLInputElement;
+    btnDown: HTMLInputElement;
+    dispVal: HTMLInputElement;
+    optInputs: Array<HTMLInputElement> = [];
+
+    constructor(id: string, getter, setter) {
+        const lis = document.getElementById(id).children;
+        this.getBase = getter; this.setBase = setter;
+        for (let i = 0; i < lis.length; i++) {
+            const li = lis[i];
+            switch (i) {
+                case 0:
+                this.btnUp = <HTMLInputElement>li.children[0];
+                break;
+                case 1:
+                this.dispVal = <HTMLInputElement>li.children[0];
+                break;
+                case 2:
+                this.btnDown = <HTMLInputElement>li.children[0];
+                break;
+            }
+        }
+        this.btnUp.addEventListener("click", this.increase);
+        this.btnDown.addEventListener("click", this.decrease);
+        this.dispVal.addEventListener("input", this.change);
+    }
+
+    setParam(min, max, step) {
+        this.dispVal.min = min;
+        this.dispVal.max = max;
+        this.dispVal.step = step;
+        this.dispVal.value = this.getBase();
+    }
+
+    addOptionalInput = (input) => {
+        input.min = this.dispVal.min;
+        input.max = this.dispVal.max;
+        input.step = this.dispVal.step;
+        input.value = this.dispVal.value;
+        input.addEventListener("input", this.change);
+        this.optInputs.push(input);
+    }
+
+    
+    getBase = (): string => { return "0"; };
+
+    setBase = (num: number) => {};
+    
+    increase = (e) => {
+        this.change(e, 1);
+    }
+
+    decrease = (e) => {
+        this.change(e, -1);
+    }
+
+    change = (e, delta=0) => {
+        let val = 0;
+        if (delta == 0) val = +(<HTMLInputElement>e.target).value;
+        else val = +this.getBase() + delta;
+        this.dispVal.value = val.toString();
+        this.setBase(val);
+        for (let i = 0; i < this.optInputs.length; i++) {
+            this.optInputs[i].value = val.toString();
+        }
+    };
+}
+
 class Metronome {
     ctx: AudioContext; // コンテクスト
     masterGain: GainNode;
@@ -92,6 +161,11 @@ class Metronome {
         this.noteList[num].setVolume(vol);
     }
 
+    setVolBulkily(num: number, vol: number) {
+        if (num == 0) this.setMasterVol(vol);
+        else this.setVolume(num - 1, vol);
+    }
+
     setMetronome(): void {
         this.lastClickTimeStamp = performance.now();
         this.counter = 0;
@@ -129,14 +203,16 @@ class Metronome {
         }, 200);
     }
 
-    setTempo(tempo: number): void {
-        if (tempo == 1) this.tempo++;
-        else if (tempo == -1) this.tempo--;
-        else this.tempo = tempo;
+    setTempo = (tempo: number) => {
+        this.tempo = tempo;
         this.beatTick = 60 * 1000 / this.tempo / 12;
     }
 
-    setBeat(beat: number): void {
+    getTempo = () => {
+        return this.tempo;
+    }
+
+    setBeat = (beat: number) => {
         if (beat == 0) {
             this.beat = 1;
             this.isRing = false;
@@ -144,6 +220,10 @@ class Metronome {
             this.beat = beat;
             this.isRing = true;
         }
+    }
+
+    getBeat = () => {
+        return this.beat;
     }
 
     currentTimeStamp(): number {
@@ -167,72 +247,34 @@ class MetronomeController {
     mn = new Metronome();
     startBtn = document.getElementById("start-stop");
     volumeBars = document.getElementsByClassName("volume");
-    tempoBar = <HTMLInputElement>document.getElementById("tempo");
     tempoDisp = <HTMLInputElement>document.getElementById("tempo-disp");
-    beatField = <HTMLInputElement>document.getElementById("beat");
     running = false;
     volumeMax = 20;
     initVolumes = [1.0, 1.0, 1.0, 0.5, 0.0, 0.0];
 
     constructor() {
         this.startBtn.onclick = this.startStop;
-        Array.prototype.forEach.call(this.volumeBars, this.initVolBar);
+        Array.prototype.forEach.call(this.volumeBars, (item: any, key: string) => {
+            item.value = this.initVolumes[+key] * this.volumeMax; item.min = 0; item.max = this.volumeMax; item.step = 1;
+            this.mn.setVolBulkily(+key, this.initVolumes[+key]);
+            item.oninput = (e) => {
+                const val = +(<HTMLInputElement>e.target).value / this.volumeMax;
+                this.mn.setVolBulkily(+key, +val);
+            }
+        });
         this.initTempo();
         this.initBeat();
     }
 
-    initVolBar = (item: any, key: string) => {
-        item.value = this.initVolumes[+key] * this.volumeMax; item.min = 0; item.max = this.volumeMax; item.step = 1;
-        if (+key == 0) {
-            this.mn.setMasterVol(this.initVolumes[+key]);
-            item.oninput = (e) => {
-                const val = +(<HTMLInputElement>e.target).value / this.volumeMax;
-                this.mn.setMasterVol(val);
-            }
-        } else {
-            this.mn.setVolume(+key - 1, this.initVolumes[+key]);
-            item.oninput = (e) => {
-                const val = +(<HTMLInputElement>e.target).value / this.volumeMax;
-                this.mn.setVolume(+key - 1, +val);
-            }
-        }
-    };
-
     initTempo = () => {
-        this.tempoBar.value = "120"; this.tempoBar.min = "40"; this.tempoBar.max = "240"; this.tempoBar.step = "1";
-        this.tempoDisp.value = this.tempoBar.value; this.tempoDisp.min = "40"; this.tempoDisp.max = "240"; this.tempoDisp.step = "1";
-        const up = document.getElementById("tempo-up");
-        const down = document.getElementById("tempo-down");
-        this.tempoBar.addEventListener("input", this.tempoChange);
-        this.tempoDisp.addEventListener("input", this.tempoChange);
-        up.addEventListener("click", this.tempoInc);
-        down.addEventListener("click", this.tempoDec);
+        const udvc = new UpDownValController("tempo-ui", this.mn.getTempo, this.mn.setTempo);
+        udvc.setParam(40, 240, 1);
+        udvc.addOptionalInput(document.getElementById("tempo"));
     };
 
     initBeat = () => {
-        this.beatField.value = "4"; this.beatField.min = "0"; this.beatField.max = "16"; this.beatField.step = "1"; 
-        this.beatField.addEventListener("input", (e) => {
-            let val = +(<HTMLInputElement>e.target).value;
-            console.log(val);
-            this.mn.setBeat(val);
-        });
-    }
-
-    tempoInc = (e) => {
-        this.tempoChange(e, 1);
-    }
-
-    tempoDec = (e) => {
-        this.tempoChange(e, -1);
-    }
-
-    tempoChange = (e, delta=0) => {
-        let val = 0;
-        if (delta == 0) val = +(<HTMLInputElement>e.target).value;
-        else val = +this.tempoBar.value + delta;
-        this.mn.setTempo(val);
-        this.tempoDisp.value = val.toString();
-        this.tempoBar.value = val.toString();
+        const udvc = new UpDownValController("beat-ui", this.mn.getBeat, this.mn.setBeat);
+        udvc.setParam(0, 16, 1);
     };
 
     startStop = () => {
@@ -244,7 +286,7 @@ class MetronomeController {
             this.running = true;
             this.mn.start();
         }
-    }
+    };
 }
 
 window.onload = () => {

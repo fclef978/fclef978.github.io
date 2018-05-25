@@ -45,8 +45,72 @@ var Note = /** @class */ (function () {
     };
     return Note;
 }());
+var UpDownValController = /** @class */ (function () {
+    function UpDownValController(id, getter, setter) {
+        var _this = this;
+        this.optInputs = [];
+        this.addOptionalInput = function (input) {
+            input.min = _this.dispVal.min;
+            input.max = _this.dispVal.max;
+            input.step = _this.dispVal.step;
+            input.value = _this.dispVal.value;
+            input.addEventListener("input", _this.change);
+            _this.optInputs.push(input);
+        };
+        this.getBase = function () { return "0"; };
+        this.setBase = function (num) { };
+        this.increase = function (e) {
+            _this.change(e, 1);
+        };
+        this.decrease = function (e) {
+            _this.change(e, -1);
+        };
+        this.change = function (e, delta) {
+            if (delta === void 0) { delta = 0; }
+            var val = 0;
+            if (delta == 0)
+                val = +e.target.value;
+            else
+                val = +_this.getBase() + delta;
+            _this.dispVal.value = val.toString();
+            _this.setBase(val);
+            for (var i = 0; i < _this.optInputs.length; i++) {
+                _this.optInputs[i].value = val.toString();
+            }
+        };
+        var ul = document.getElementById(id);
+        var lis = ul.children;
+        this.getBase = getter;
+        this.setBase = setter;
+        for (var i = 0; i < lis.length; i++) {
+            var li = lis[i];
+            switch (i) {
+                case 0:
+                    this.btnUp = li.children[0];
+                    break;
+                case 1:
+                    this.dispVal = li.children[0];
+                    break;
+                case 2:
+                    this.btnDown = li.children[0];
+                    break;
+            }
+        }
+        this.btnUp.addEventListener("click", this.increase);
+        this.btnDown.addEventListener("click", this.decrease);
+        this.dispVal.addEventListener("input", this.change);
+    }
+    UpDownValController.prototype.setParam = function (min, max, step) {
+        this.dispVal.min = min;
+        this.dispVal.max = max;
+        this.dispVal.step = step;
+        this.dispVal.value = this.getBase();
+    };
+    return UpDownValController;
+}());
 var Metronome = /** @class */ (function () {
     function Metronome() {
+        var _this = this;
         this.bufList = {};
         this.noteList = [];
         this.beatTick = 60 * 1000 / 120 / 12;
@@ -54,6 +118,26 @@ var Metronome = /** @class */ (function () {
         this.tempo = 120;
         this.beat = 4;
         this.isRing = true;
+        this.setTempo = function (tempo) {
+            _this.tempo = tempo;
+            _this.beatTick = 60 * 1000 / _this.tempo / 12;
+        };
+        this.getTempo = function () {
+            return _this.tempo;
+        };
+        this.setBeat = function (beat) {
+            if (beat == 0) {
+                _this.beat = 1;
+                _this.isRing = false;
+            }
+            else {
+                _this.beat = beat;
+                _this.isRing = true;
+            }
+        };
+        this.getBeat = function () {
+            return _this.beat;
+        };
         this.initAudio();
         this.baseTimeStamp = performance.now() - this.ctx.currentTime * 1000;
         this.lastClickTimeStamp = performance.now();
@@ -73,6 +157,12 @@ var Metronome = /** @class */ (function () {
     };
     Metronome.prototype.setVolume = function (num, vol) {
         this.noteList[num].setVolume(vol);
+    };
+    Metronome.prototype.setVolBulkily = function (num, vol) {
+        if (num == 0)
+            this.setMasterVol(vol);
+        else
+            this.setVolume(num - 1, vol);
     };
     Metronome.prototype.setMetronome = function () {
         var _this = this;
@@ -108,25 +198,6 @@ var Metronome = /** @class */ (function () {
             }
         }, 200);
     };
-    Metronome.prototype.setTempo = function (tempo) {
-        if (tempo == 1)
-            this.tempo++;
-        else if (tempo == -1)
-            this.tempo--;
-        else
-            this.tempo = tempo;
-        this.beatTick = 60 * 1000 / this.tempo / 12;
-    };
-    Metronome.prototype.setBeat = function (beat) {
-        if (beat == 0) {
-            this.beat = 1;
-            this.isRing = false;
-        }
-        else {
-            this.beat = beat;
-            this.isRing = true;
-        }
-    };
     Metronome.prototype.currentTimeStamp = function () {
         return this.baseTimeStamp + this.ctx.currentTime * 1000;
     };
@@ -147,76 +218,18 @@ var MetronomeController = /** @class */ (function () {
         this.mn = new Metronome();
         this.startBtn = document.getElementById("start-stop");
         this.volumeBars = document.getElementsByClassName("volume");
-        this.tempoBar = document.getElementById("tempo");
         this.tempoDisp = document.getElementById("tempo-disp");
-        this.beatField = document.getElementById("beat");
         this.running = false;
         this.volumeMax = 20;
         this.initVolumes = [1.0, 1.0, 1.0, 0.5, 0.0, 0.0];
-        this.initVolBar = function (item, key) {
-            item.value = _this.initVolumes[+key] * _this.volumeMax;
-            item.min = 0;
-            item.max = _this.volumeMax;
-            item.step = 1;
-            if (+key == 0) {
-                _this.mn.setMasterVol(_this.initVolumes[+key]);
-                item.oninput = function (e) {
-                    var val = +e.target.value / _this.volumeMax;
-                    _this.mn.setMasterVol(val);
-                };
-            }
-            else {
-                _this.mn.setVolume(+key - 1, _this.initVolumes[+key]);
-                item.oninput = function (e) {
-                    var val = +e.target.value / _this.volumeMax;
-                    _this.mn.setVolume(+key - 1, +val);
-                };
-            }
-        };
         this.initTempo = function () {
-            _this.tempoBar.value = "120";
-            _this.tempoBar.min = "40";
-            _this.tempoBar.max = "240";
-            _this.tempoBar.step = "1";
-            _this.tempoDisp.value = _this.tempoBar.value;
-            _this.tempoDisp.min = "40";
-            _this.tempoDisp.max = "240";
-            _this.tempoDisp.step = "1";
-            var up = document.getElementById("tempo-up");
-            var down = document.getElementById("tempo-down");
-            _this.tempoBar.addEventListener("input", _this.tempoChange);
-            _this.tempoBar.addEventListener("change", _this.tempoChange);
-            _this.tempoDisp.addEventListener("input", _this.tempoChange);
-            up.addEventListener("click", _this.tempoInc);
-            down.addEventListener("click", _this.tempoDec);
+            var udvc = new UpDownValController("tempo-ui", _this.mn.getTempo, _this.mn.setTempo);
+            udvc.setParam(40, 240, 1);
+            udvc.addOptionalInput(document.getElementById("tempo"));
         };
         this.initBeat = function () {
-            _this.beatField.value = "4";
-            _this.beatField.min = "0";
-            _this.beatField.max = "16";
-            _this.beatField.step = "1";
-            _this.beatField.addEventListener("input", function (e) {
-                var val = +e.target.value;
-                console.log(val);
-                _this.mn.setBeat(val);
-            });
-        };
-        this.tempoInc = function (e) {
-            _this.tempoChange(e, 1);
-        };
-        this.tempoDec = function (e) {
-            _this.tempoChange(e, -1);
-        };
-        this.tempoChange = function (e, delta) {
-            if (delta === void 0) { delta = 0; }
-            var val = 0;
-            if (delta == 0)
-                val = +e.target.value;
-            else
-                val = +_this.tempoBar.value + delta;
-            _this.mn.setTempo(val);
-            _this.tempoDisp.value = val.toString();
-            _this.tempoBar.value = val.toString();
+            var udvc = new UpDownValController("beat-ui", _this.mn.getBeat, _this.mn.setBeat);
+            udvc.setParam(0, 16, 1);
         };
         this.startStop = function () {
             if (_this.running) {
@@ -229,7 +242,17 @@ var MetronomeController = /** @class */ (function () {
             }
         };
         this.startBtn.onclick = this.startStop;
-        Array.prototype.forEach.call(this.volumeBars, this.initVolBar);
+        Array.prototype.forEach.call(this.volumeBars, function (item, key) {
+            item.value = _this.initVolumes[+key] * _this.volumeMax;
+            item.min = 0;
+            item.max = _this.volumeMax;
+            item.step = 1;
+            _this.mn.setVolBulkily(+key, _this.initVolumes[+key]);
+            item.oninput = function (e) {
+                var val = +e.target.value / _this.volumeMax;
+                _this.mn.setVolBulkily(+key, +val);
+            };
+        });
         this.initTempo();
         this.initBeat();
     }
