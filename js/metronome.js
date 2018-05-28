@@ -195,11 +195,12 @@ var Metronome = /** @class */ (function () {
             // 未スケジュールのクリックのうち1.5秒後までに発生予定のものを予約
             var now = _this.currentTimeStamp();
             for (var nextClickTimeStamp = _this.lastClickTimeStamp + _this.beatTick; nextClickTimeStamp < now + 300; nextClickTimeStamp += _this.beatTick) {
-                switch (_this.counter) {
-                    case 0:
-                        _this.event0();
-                    case 24:
-                        _this.event12();
+                var delta = nextClickTimeStamp - performance.now();
+                if (_this.counter % 12 == 0) {
+                    _this.event0(delta);
+                }
+                else if (_this.counter % 12 == 6) {
+                    _this.event12(delta);
                 }
                 _this.lastClickTimeStamp = _this.reserveClick(nextClickTimeStamp);
             }
@@ -241,6 +242,7 @@ var MetronomeController = /** @class */ (function () {
         };
         this.startStop = function () {
             _this.mn.ctx.resume();
+            _this.mn.ctx.createBufferSource().start(0);
             if (_this.running) {
                 _this.running = false;
                 _this.mn.stop();
@@ -264,11 +266,15 @@ var MetronomeController = /** @class */ (function () {
         });
         this.initTempo();
         this.initBeat();
-        this.mn.event0 = function () {
-            _this.lamp.classList.remove("hidden");
+        this.mn.event0 = function (delta) {
+            setTimeout(function () {
+                _this.lamp.classList.remove("hidden");
+            }, delta);
         };
-        this.mn.event12 = function () {
-            _this.lamp.classList.add("hidden");
+        this.mn.event12 = function (delta) {
+            setTimeout(function () {
+                _this.lamp.classList.add("hidden");
+            }, delta);
         };
     }
     return MetronomeController;

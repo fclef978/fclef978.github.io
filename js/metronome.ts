@@ -178,11 +178,12 @@ class Metronome {
             for (let nextClickTimeStamp = this.lastClickTimeStamp + this.beatTick;
                  nextClickTimeStamp < now + 300;
                  nextClickTimeStamp += this.beatTick) {
-                switch (this.counter) {
-                    case 0:
-                    this.event0();
-                    case 24:
-                    this.event12();
+                let delta = nextClickTimeStamp - performance.now();
+                if (this.counter % 12 == 0) {
+                    this.event0(delta);
+                }
+                else if (this.counter % 12 == 6) {
+                    this.event12(delta);
                 }
 
                 this.lastClickTimeStamp = this.reserveClick(nextClickTimeStamp);
@@ -277,11 +278,15 @@ class MetronomeController {
         });
         this.initTempo();
         this.initBeat();
-        this.mn.event0 = () => {
-            this.lamp.classList.remove("hidden");
+        this.mn.event0 = (delta) => {
+            setTimeout(() => {
+                this.lamp.classList.remove("hidden");
+            }, delta);
         }
-        this.mn.event12 = () => {
-            this.lamp.classList.add("hidden");
+        this.mn.event12 = (delta) => {
+            setTimeout(() => {
+                this.lamp.classList.add("hidden");
+            }, delta);
         }
     }
 
@@ -298,6 +303,7 @@ class MetronomeController {
 
     startStop = () => {
         this.mn.ctx.resume();
+        this.mn.ctx.createBufferSource().start(0);
         if (this.running) {
             this.running = false;
             this.mn.stop();
