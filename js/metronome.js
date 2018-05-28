@@ -78,8 +78,7 @@ var UpDownValController = /** @class */ (function () {
                 _this.optInputs[i].value = val.toString();
             }
         };
-        var ul = document.getElementById(id);
-        var lis = ul.children;
+        var lis = document.getElementById(id).children;
         this.getBase = getter;
         this.setBase = setter;
         for (var i = 0; i < lis.length; i++) {
@@ -118,6 +117,29 @@ var Metronome = /** @class */ (function () {
         this.tempo = 120;
         this.beat = 4;
         this.isRing = true;
+        this.reserveClick = function (nextClickTimeStamp) {
+            // 予約時間をループで使っていたDOMHighResTimeStampからAudioContext向けに変換
+            var nextClickTime = _this.timeStampToAudioContextTime(nextClickTimeStamp);
+            // 変換した時刻を使ってクリックを予約
+            if (_this.counter == 0 && _this.isRing) {
+                _this.noteList[0].click(nextClickTime);
+            }
+            if (_this.counter % 12 == 0) {
+                _this.noteList[1].click(nextClickTime);
+            }
+            else if (_this.counter % 6 == 0) {
+                _this.noteList[2].click(nextClickTime);
+            }
+            else if (_this.counter % 4 == 0) {
+                _this.noteList[3].click(nextClickTime);
+            }
+            else if (_this.counter % 3 == 0) {
+                _this.noteList[4].click(nextClickTime);
+            }
+            if (++_this.counter >= 12 * _this.beat)
+                _this.counter = 0;
+            return nextClickTimeStamp;
+        };
         this.setTempo = function (tempo) {
             _this.tempo = tempo;
             _this.beatTick = 60 * 1000 / _this.tempo / 12;
@@ -173,28 +195,13 @@ var Metronome = /** @class */ (function () {
             // 未スケジュールのクリックのうち1.5秒後までに発生予定のものを予約
             var now = _this.currentTimeStamp();
             for (var nextClickTimeStamp = _this.lastClickTimeStamp + _this.beatTick; nextClickTimeStamp < now + 300; nextClickTimeStamp += _this.beatTick) {
-                // 予約時間をループで使っていたDOMHighResTimeStampからAudioContext向けに変換
-                var nextClickTime = _this.timeStampToAudioContextTime(nextClickTimeStamp);
-                // 変換した時刻を使ってクリックを予約
-                if (_this.counter == 0 && _this.isRing) {
-                    _this.noteList[0].click(nextClickTime);
+                switch (_this.counter) {
+                    case 0:
+                        _this.event0();
+                    case 24:
+                        _this.event12();
                 }
-                if (_this.counter % 12 == 0) {
-                    _this.noteList[1].click(nextClickTime);
-                }
-                else if (_this.counter % 6 == 0) {
-                    _this.noteList[2].click(nextClickTime);
-                }
-                else if (_this.counter % 4 == 0) {
-                    _this.noteList[3].click(nextClickTime);
-                }
-                else if (_this.counter % 3 == 0) {
-                    _this.noteList[4].click(nextClickTime);
-                }
-                if (++_this.counter >= 12 * _this.beat)
-                    _this.counter = 0;
-                // スケジュール済みクリックの時刻を更新
-                _this.lastClickTimeStamp = nextClickTimeStamp;
+                _this.lastClickTimeStamp = _this.reserveClick(nextClickTimeStamp);
             }
         }, 200);
     };
@@ -219,6 +226,7 @@ var MetronomeController = /** @class */ (function () {
         this.startBtn = document.getElementById("start-stop");
         this.volumeBars = document.getElementsByClassName("volume");
         this.tempoDisp = document.getElementById("tempo-disp");
+        this.lamp = document.getElementById("lamp");
         this.running = false;
         this.volumeMax = 20;
         this.initVolumes = [1.0, 1.0, 1.0, 0.5, 0.0, 0.0];
@@ -232,6 +240,7 @@ var MetronomeController = /** @class */ (function () {
             udvc.setParam(0, 16, 1);
         };
         this.startStop = function () {
+            _this.mn.ctx.resume();
             if (_this.running) {
                 _this.running = false;
                 _this.mn.stop();
@@ -255,6 +264,12 @@ var MetronomeController = /** @class */ (function () {
         });
         this.initTempo();
         this.initBeat();
+        this.mn.event0 = function () {
+            _this.lamp.classList.remove("hidden");
+        };
+        this.mn.event12 = function () {
+            _this.lamp.classList.add("hidden");
+        };
     }
     return MetronomeController;
 }());

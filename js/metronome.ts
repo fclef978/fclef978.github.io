@@ -135,6 +135,8 @@ class Metronome {
     beat = 4;
     timer: number;
     isRing = true;
+    event0;
+    event12;
 
     constructor() {
         this.initAudio();
@@ -176,31 +178,41 @@ class Metronome {
             for (let nextClickTimeStamp = this.lastClickTimeStamp + this.beatTick;
                  nextClickTimeStamp < now + 300;
                  nextClickTimeStamp += this.beatTick) {
-                // 予約時間をループで使っていたDOMHighResTimeStampからAudioContext向けに変換
-                const nextClickTime: number = this.timeStampToAudioContextTime(nextClickTimeStamp);
+                switch (this.counter) {
+                    case 0:
+                    this.event0();
+                    case 24:
+                    this.event12();
+                }
 
-                // 変換した時刻を使ってクリックを予約
-                if (this.counter == 0 && this.isRing) {
-                    this.noteList[0].click(nextClickTime);
-                }
-                if (this.counter % 12 == 0) {
-                    this.noteList[1].click(nextClickTime);
-                }
-                else if (this.counter % 6 == 0) {
-                    this.noteList[2].click(nextClickTime);
-                }
-                else if (this.counter % 4 == 0) {
-                    this.noteList[3].click(nextClickTime);
-                }
-                else if (this.counter % 3 == 0) {
-                    this.noteList[4].click(nextClickTime);
-                }
-                if (++this.counter >= 12 * this.beat) this.counter = 0;
-
-                // スケジュール済みクリックの時刻を更新
-                this.lastClickTimeStamp = nextClickTimeStamp;
+                this.lastClickTimeStamp = this.reserveClick(nextClickTimeStamp);
             }
         }, 200);
+    }
+
+    reserveClick = (nextClickTimeStamp: number) => {
+        // 予約時間をループで使っていたDOMHighResTimeStampからAudioContext向けに変換
+        const nextClickTime: number = this.timeStampToAudioContextTime(nextClickTimeStamp);
+
+        // 変換した時刻を使ってクリックを予約
+        if (this.counter == 0 && this.isRing) {
+            this.noteList[0].click(nextClickTime);
+        }
+        if (this.counter % 12 == 0) {
+            this.noteList[1].click(nextClickTime);
+        }
+        else if (this.counter % 6 == 0) {
+            this.noteList[2].click(nextClickTime);
+        }
+        else if (this.counter % 4 == 0) {
+            this.noteList[3].click(nextClickTime);
+        }
+        else if (this.counter % 3 == 0) {
+            this.noteList[4].click(nextClickTime);
+        }
+        if (++this.counter >= 12 * this.beat) this.counter = 0;
+
+        return nextClickTimeStamp;
     }
 
     setTempo = (tempo: number) => {
@@ -248,6 +260,7 @@ class MetronomeController {
     startBtn = document.getElementById("start-stop");
     volumeBars = document.getElementsByClassName("volume");
     tempoDisp = <HTMLInputElement>document.getElementById("tempo-disp");
+    lamp = document.getElementById("lamp");
     running = false;
     volumeMax = 20;
     initVolumes = [1.0, 1.0, 1.0, 0.5, 0.0, 0.0];
@@ -264,6 +277,12 @@ class MetronomeController {
         });
         this.initTempo();
         this.initBeat();
+        this.mn.event0 = () => {
+            this.lamp.classList.remove("hidden");
+        }
+        this.mn.event12 = () => {
+            this.lamp.classList.add("hidden");
+        }
     }
 
     initTempo = () => {
@@ -278,6 +297,7 @@ class MetronomeController {
     };
 
     startStop = () => {
+        this.mn.ctx.resume();
         if (this.running) {
             this.running = false;
             this.mn.stop();
