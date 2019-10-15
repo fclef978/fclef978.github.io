@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>コードクイズ</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<h1>コード進行クイズ</h1>
+<div id="game">
+    <button id="gameStartBtn" onclick="gameStart()">ゲームスタート</button>
+    <h2 id="scoreHeader">
+        正解数：
+        <span id="score"></span>
+    </h2>
+    <h2 id="statusHeader">
+        ステータス
+        <span id="status"></span>
+    </h2>
+    <h2 id="noteHeader">
+        階名：
+        <span id="note"></span>
+    </h2>
+    <div id="inputArea">
+        <p id="chord">
+            <label for="chordName">コードネーム：</label>
+            <input id="chordName" type="text" onchange="inputChordName()"/>
+        </p>
+    </div>
+</div>
+<h1>ルール</h1>
+<ul>
+    <li>画面に表示される階名から構成されるコードを入力してください。</li>
+    <li>階名はドイツ語（実音）、コードネームは英語のちゃんぽんです。</li>
+    <li>半音はドイツ語も英語も#(is)側のみの対応です。（そのうち直す）</li>
+    <li>半角英数字で入力してください。</li>
+    <li>
+        出てくるコードは
+        <ol>
+            <li>""メイジャー</li>
+            <li>"m"マイナー</li>
+            <li>"dim"ディミニッシュ</li>
+            <li>"aug"オーグメント</li>
+            <li>"sus4"サスフォー</li>
+            <li>"7"セブンス</li>
+            <li>"m7"マイナーセブンス</li>
+            <li>"M7"メイジャーセブンス</li>
+            <li>"mM7"マイナーメイジャーセブンス</li>
+            <li>"dim7"ディミニッシュセブンス</li>
+            <li>"m7-5"マイナーセブンスフラットファイブ</li>
+            <li>"7sus4"セブンスサスフォー</li>
+            <li>"M7sus4"メイジャーセブンスサスフォー</li>
+            <li>"6"シックス</li>
+            <li>"m6"マイナーシックス</li>
+        </ol>
+    </li>
+</ul>
+例
+<ul>
+    <li>C E G -> C</li>
+    <li>G B D　-> Gm</li>
+    <li>D Fis A Cis -> DM7</li>
+</ul>
+<script src="./js/ChordQuiz.js"></script>
+</body>
+</html>
