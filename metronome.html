@@ -9,19 +9,74 @@
 </head>
 <body>
 <div id="lamp-wrapper" class="container">
-    <div id="lamp"></div>
+    <div id="lamp" class="hidden"></div>
 </div>
 <div class="container">
     <button id="start-stop">再生・停止</button>
 </div>
 <div class="container">
-    <input type="range" id="main-volume" class="slider volume">
-    <input type="range" id="volume1" class="slider volume">
-    <input type="range" id="volume4" class="slider volume">
-    <input type="range" id="volume8" class="slider volume">
-    <input type="range" id="volume12" class="slider volume">
-    <input type="range" id="volume16" class="slider volume">
-    <input type="range" id="tempo" class="slider">
+    <div class="slider-wrapper">
+        <input type="range" id="main-volume" class="slider volume" list="tickmarks">
+    </div>
+    <div class="slider-wrapper">
+        <input type="range" id="volume1" class="slider volume hidden" list="tickmarks">
+    </div>
+    <div class="slider-wrapper">
+        <input type="range" id="volume4" class="slider volume hidden" list="tickmarks">
+    </div>
+    <div class="slider-wrapper">
+        <input type="range" id="volume8" class="slider volume hidden" list="tickmarks">
+    </div>
+    <div class="slider-wrapper">
+        <input type="range" id="volume12" class="slider volume hidden" list="tickmarks">
+    </div>
+    <div class="slider-wrapper">
+        <input type="range" id="volume16" class="slider volume hidden" list="tickmarks">
+    </div>
 </div>
+<div class="container">
+    <div id="tempo-wrapper">
+        <div class="slider-wrapper">
+            <input type="range" id="tempo" class="slider">
+        </div>
+        <ul id="tempo-ui">
+            <li>
+                <button id="tempo-up">↑</button>
+            </li>
+            <li>
+                <input type="number" id="tempo-disp"></input>
+            </li>
+            <li>
+                <button id="tempo-down">↓</button>
+            </li>
+        </ul>
+    </div>
+    <div id="beat-wrapper">
+        <ul id="beat-ui">
+            <li>
+                <button id="beat-up">↑</button>
+            </li>
+            <li>
+                <input type="number" id="beat" class="number" value="4">
+            </li>
+            <li>
+                <button id="beat-down">↓</button>
+            </li>
+        </ul>
+    </div>
+</div>
+<datalist id="tickmarks">
+    <option value="0">
+    <option value="2">
+    <option value="4">
+    <option value="6">
+    <option value="8">
+    <option value="10">
+    <option value="12">
+    <option value="14">
+    <option value="16">
+    <option value="18">
+    <option value="20">
+  </datalist>
 </body>
 </html>
